@@ -37,7 +37,7 @@ Highcharts.SVGRenderer.prototype.symbols.download = (x, y, w, h) => [
   `L`, x + w, y + h * 0.9
 ]
 
-const MarkerGeneHeatmap = (props) => {
+const ClusterMarkerGeneHeatmap = (props) => {
   const { chartHeight, hasDynamicHeight, heatmapRowHeight, species } = props
   const { data, isDataFiltered, xAxisCategories, yAxisCategories } = props
   const totalNumberOfRows = Object.keys(_.groupBy(data, `geneName`)).length
@@ -300,7 +300,7 @@ const MarkerGeneHeatmap = (props) => {
   )
 }
 
-MarkerGeneHeatmap.propTypes = {
+ClusterMarkerGeneHeatmap.propTypes = {
   chartHeight: PropTypes.number.isRequired,
   data: PropTypes.arrayOf(PropTypes.shape({
     x: PropTypes.number.isRequired,
@@ -318,4 +318,4 @@ MarkerGeneHeatmap.propTypes = {
   species: PropTypes.string.isRequired
 }
 
-export default MarkerGeneHeatmap
+export default ClusterMarkerGeneHeatmap

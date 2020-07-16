@@ -4,13 +4,13 @@ import {shallow} from 'enzyme'
 import Adapter from 'enzyme-adapter-react-16'
 
 import '@babel/polyfill'
-import MarkerGeneHeatmap from '../src/MarkerGeneHeatmap'
+import ClusterMarkerGeneHeatmap from '../src/ClusterMarkerGeneHeatmap'
 
 Enzyme.configure({ adapter: new Adapter() })
 
-describe(`MarkerGeneHeatmap`, () => {
+describe(`ClusterMarkerGeneHeatmap`, () => {
   test(`creates plotlines for every cluster if data isn't filtered`, () => {
-    const wrapper = shallow(<MarkerGeneHeatmap
+    const wrapper = shallow(<ClusterMarkerGeneHeatmap
       data={[
         {
           x: 0,
@@ -48,7 +48,7 @@ describe(`MarkerGeneHeatmap`, () => {
   })
 
   test(`doesn't create plotlines if data is filtered`, () => {
-    const wrapper = shallow(<MarkerGeneHeatmap
+    const wrapper = shallow(<ClusterMarkerGeneHeatmap
       data={[
         {
           x: 0,
@@ -72,7 +72,7 @@ describe(`MarkerGeneHeatmap`, () => {
   })
 
   test(`does have data export options and a styled button`, () => {
-    const wrapper = shallow(<MarkerGeneHeatmap
+    const wrapper = shallow(<ClusterMarkerGeneHeatmap
       data={[
         {
           x: 0,
