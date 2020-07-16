@@ -30,7 +30,7 @@ class Demo extends React.Component {
       // ksWithMarkers: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
       // ksWithMarkers: [4, 7, 9],
       // ksWithMarkers: [36, 37, 38, 39, 40, 41, 42, 42, 43, 44, 45, 46],
-      selectedK: ks[3].toString()
+      selectedK: ks[4].toString()
       // selectedK: 17
     }
   }
@@ -39,22 +39,22 @@ class Demo extends React.Component {
     return (
       <div style={{paddingBottom: `25px`}}>
         <HeatmapView
-          wrapperClassName={`row expanded`}
           resource={`json/experiments/${this.state.experimentAccession}/marker-genes/${this.state.selectedK}`}
-          host={`http://ves-hx-76:8080/gxa/sc/`}
-          ks={this.state.ks}
-          ksWithMarkers={this.state.ksWithMarkers}
-          selectedK={this.state.selectedK}
-          onSelectK={
-            (k) => {
-              this.setState({
-                selectedK: parseInt(k)
-              })
-            }
-          }
-          species={`Homo sapiens`}
-          hasDynamicHeight={true}
-          heatmapRowHeight={20}
+          host={`https://www.ebi.ac.uk/gxa/sc/`}
+          type={`cluster`}
+          props={{
+            ks: this.state.ks,
+            ksWithMarkers: this.state.ksWithMarkers,
+            selectedK: this.state.selectedK,
+            onSelectK: (k) => {
+              this.setState({selectedK: parseInt(k)})
+            },
+            defaultHeatmapHeight: 300,
+            species: `Homo sapiens`,
+            hasDynamicHeight: true,
+            heatmapRowHeight: 20,
+            wrapperClassName: `row expanded`
+          }}
         />
       </div>
     )
