@@ -1,12 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import MarkerGeneHeatmap from './MarkerGeneHeatmap'
-import PlotSettingsDropdown from './PlotSettingsDropdown'
 import LoadingOverlay from './LoadingOverlay'
 import CalloutAlert from './CalloutAlert'
-
+import { clusterHeatmapView } from './clusterHeatmapView'
+import { cellTypeHeatmapView } from './cellTypeHeatmapView'
 import URI from 'urijs'
-import _ from 'lodash'
+import _ from "lodash";
 
 class HeatmapView extends React.Component {
   constructor(props) {
@@ -19,6 +18,7 @@ class HeatmapView extends React.Component {
       isLoading: true,
       hasError: null
     }
+    this.onSelectCluster = this.onSelectCluster.bind(this)
   }
 
   async _fetchAndSetState({resource, host}) {
@@ -27,9 +27,10 @@ class HeatmapView extends React.Component {
     })
 
     const url = URI(resource, host).toString()
-
+    console.log(`url`, url)
     try {
       const response = await fetch(url)
+      console.log(`response`, response)
 
       if (!response.ok) {
         throw new Error(`${url} => ${response.status}`)
@@ -44,6 +45,8 @@ class HeatmapView extends React.Component {
         hasError: null
       })
     } catch(e) {
+      console.log(`catch`)
+
       this.setState({
         data: null,
         isLoading: false,
@@ -76,80 +79,31 @@ class HeatmapView extends React.Component {
     })
   }
 
-  render() {
-    const { data, filteredData, selectedClusterId, isLoading, hasError } = this.state
+ onSelectCluster(selectedOption) {
+   this.setState((state) => ({
+     data: _.cloneDeep(state.data),
+     filteredData: selectedOption.value === `all` ?
+       _.cloneDeep(state.data) :
+       _.filter(state.data, {'clusterIdWhereMarker': parseInt(selectedOption.value)}),
+     selectedClusterId: selectedOption
+   }))
+ }
+
+render() {
+    const { isLoading, hasError } = this.state
     const { wrapperClassName, plotWrapperClassName } = this.props
-    const { ks, ksWithMarkers, selectedK, onSelectK } = this.props
-    const { hasDynamicHeight, defaultHeatmapHeight, heatmapRowHeight, species } = this.props
-
-    const kOptions = ks
-      .sort((a, b) => a-b)
-      .map((k) => ({
-        value: k.toString(),
-        label: `k = ${k}`,
-        isDisabled: ksWithMarkers ? !ksWithMarkers.includes(k) : false
-      }))
-
-    const allClusterIds = _.range(1, parseInt(selectedK) + 1)
-    const clusterIdsWithMarkers = data && _.uniq(data.map(x => x.clusterIdWhereMarker))
-
-    const clusterIdOptions = allClusterIds
-      .sort((a, b) => a-b)
-      .map((clusterId) => ({
-        value: clusterId.toString(),
-        label: `Cluster ${clusterId}`,
-        isDisabled: clusterIdsWithMarkers ? !clusterIdsWithMarkers.includes(clusterId) : false
-      }))
-
-    // Add default "All clusters" option at the start of the options array
-    clusterIdOptions.unshift({
-      value: `all`,
-      label: `All clusters`,
-      isDisabled: false // always show this option
-    })
+    const view = this.props.type == `cluster` ?
+      clusterHeatmapView(this.props.props, this.state, this.onSelectCluster)  :
+      cellTypeHeatmapView(this.props.props, this.state)
 
     return (
       hasError ?
         <CalloutAlert error={hasError}/> :
         <div>
-          <div className={wrapperClassName}>
-            <div className={`small-12 medium-6 columns`}>
-              <PlotSettingsDropdown
-                labelText={`Number of clusters:`}
-                options={kOptions}
-                onSelect={(selectedOption) => onSelectK(selectedOption.value)}
-                value={{value: selectedK, label: `k = ${selectedK}`}}
-              />
-            </div>
-            <div className={`small-12 medium-6 columns`}>
-              <PlotSettingsDropdown
-                labelText={`Show marker genes for:`}
-                options={clusterIdOptions}
-                onSelect={(selectedOption) => {
-                  this.setState((state) => ({
-                    data: _.cloneDeep(state.data),
-                    filteredData: selectedOption.value === `all` ?
-                      _.cloneDeep(state.data) :
-                      _.filter(state.data, {'clusterIdWhereMarker': parseInt(selectedOption.value)}),
-                    selectedClusterId: selectedOption
-                  }))
-                }}
-                value={selectedClusterId || clusterIdOptions[0]}
-              />
-            </div>
-          </div>
+          { this.props.type == `cluster` ? view[1] : `` }
           <div className={wrapperClassName}>
             <div className={plotWrapperClassName} style={{position: `relative`}}>
-              <MarkerGeneHeatmap
-                data={filteredData}
-                isDataFiltered={selectedClusterId && selectedClusterId.value !== `all` || false}
-                xAxisCategories={allClusterIds}
-                yAxisCategories={_.chain(data).map(cell => _.pick(cell, `geneName`, `clusterIdWhereMarker`)).uniqWith(_.isEqual).map(`geneName`).value()}
-                chartHeight={defaultHeatmapHeight}
-                hasDynamicHeight={_.chain(filteredData).map(`geneName`).uniq().value().length > 5 ? hasDynamicHeight : false}
-                heatmapRowHeight={heatmapRowHeight}
-                species={species}
-              />
+              {view[0]}
               <LoadingOverlay
                 show={isLoading}
               />
@@ -163,24 +117,8 @@ class HeatmapView extends React.Component {
 HeatmapView.propTypes = {
   host: PropTypes.string.isRequired,
   resource: PropTypes.string.isRequired,
-  ks: PropTypes.arrayOf(PropTypes.number).isRequired,
-  ksWithMarkers: PropTypes.arrayOf(PropTypes.number),
-  selectedK: PropTypes.string.isRequired,
-  onSelectK: PropTypes.func,
-  wrapperClassName: PropTypes.string,
-  plotWrapperClassName: PropTypes.string,
-  defaultHeatmapHeight: PropTypes.number,
-  hasDynamicHeight: PropTypes.bool,
-  heatmapRowHeight: PropTypes.number,
-  species: PropTypes.string.isRequired
-}
-
-HeatmapView.defaultProps = {
-  wrapperClassName: `row`,
-  plotWrapperClassName: `small-12 columns`,
-  defaultHeatmapHeight: 300,
-  hasDynamicHeight: true,
-  heatmapRowHeight: 20
+  type: PropTypes.string.isRequired,
+  props: PropTypes.object.isRequired
 }
 
 export default HeatmapView
